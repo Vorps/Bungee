@@ -1,0 +1,6 @@
+main: net.vorps.bungee.Bungee
+name: Bungee
+version: 1.0
+author: Vorps
+commands:
+  ban:
