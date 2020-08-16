@@ -10,7 +10,6 @@ public class ServerConnectEvent implements Listener {
 
     @EventHandler
     public void onConnectServerEvent(net.md_5.bungee.api.event.ServerConnectEvent e) {
-        System.out.println(e.getTarget());
 
         /*ProxiedPlayer player = e.getPlayer();
         String playerIp = e.getPlayer().getSocketAddress().toString().split(":")[0];
@@ -19,11 +18,7 @@ public class ServerConnectEvent implements Listener {
             e.setCancelled(false);
             return;
         }
-        PlayerData playerData = new PlayerData(player.getUniqueId(), playerIp);
-        if (Ban.update(player, playerData.getLang())){
-            e.setCancelled(false);
-            return;
-        }
+
         Mute.update(player, playerData.getLang());
         for (String notification : net.vorps.api.players.PlayerData.getNotification(player.getUniqueId()))
             player.sendMessage(InteractMessage.isInteractMessage(notification) ? InteractMessage.getInteractMessage(notification).get(notification, playerData.getLang()) : new TextComponent(notification));

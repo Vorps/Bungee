@@ -4,8 +4,10 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.vorps.api.data.Data;
+import net.vorps.api.data.DataCore;
 import net.vorps.api.databases.Database;
 import net.vorps.api.message.NetWorkServer;
+import net.vorps.bungee.commands.CommandManager;
 import net.vorps.bungee.listeners.*;
 import net.vorps.bungee.objects.Servers;
 import net.vorps.dispatcher.CreateServerException;
@@ -25,11 +27,9 @@ public class Bungee extends Plugin {
     @Override
     public void onEnable() {
         Bungee.instance = this;
-        Data.setDatabase(Database.BUNGEE.getDatabase());
+        DataCore.setDatabase(Database.BUNGEE.getDatabase());
         Settings.initSettings();
-        getProxy().registerChannel( "BungeeCord" );
         new ListenerManager(this, new PostLoginEvent(), new ServerConnectEvent(), new PlayerDisconnectEvent(), new ChatEvent(), new ProxyPingEvent());
-        new CommandManager();
         DataBungee.loadServerType();
         Servers.registerServer();
         try {
@@ -52,6 +52,7 @@ public class Bungee extends Plugin {
         } catch (IOException e){
             e.printStackTrace();
         }
+        CommandManager.init();
     }
 
 

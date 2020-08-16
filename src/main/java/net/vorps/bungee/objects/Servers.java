@@ -4,19 +4,17 @@ import lombok.Getter;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.vorps.api.Exceptions.SqlException;
 import net.vorps.api.data.Data;
+import net.vorps.api.databases.Database;
 import net.vorps.api.databases.DatabaseManager;
 import net.vorps.api.message.ServerState;
 import net.vorps.api.utils.StringBuilder;
 import net.vorps.bungee.Bungee;
 import net.vorps.bungee.DataBungee;
-import net.vorps.bungee.Settings;
-import net.vorps.dispatcher.Dispatcher;
 import net.vorps.dispatcher.Server;
 
 import java.net.InetSocketAddress;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Date;
 import java.util.HashMap;
 
 /**
@@ -34,7 +32,7 @@ public class Servers extends Server {
     public Servers(String name, int port){
         super(name, port);
         try {
-            Data.database.insertTable("server", name, port, ServerState.WAITING.name());
+            Database.BUNGEE.getDatabase().insertTable("server", name, port, ServerState.WAITING.name());
         } catch (SqlException e){
             e.printStackTrace();
         }
@@ -45,7 +43,7 @@ public class Servers extends Server {
     public void removeServer(){
         super.removeServer();
         try {
-            Data.database.delete("server", "s_name = '" + this.name + "'");
+            Database.BUNGEE.getDatabase().delete("server", "s_name = '" + this.name + "'");
         } catch (SqlException e){
             e.printStackTrace();
         }

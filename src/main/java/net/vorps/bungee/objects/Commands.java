@@ -22,9 +22,8 @@ public class Commands {
     public Commands(ResultSet result) throws SQLException, SqlException {
         this.alias = new ArrayList<>();
         this.command = result.getString(1);
-        ResultSet results;
-        results = Database.BUNGEE.getDatabase().getData("alias", "a_command = '" + this.command + "'");
-        while (results.next()) this.alias.add(result.getString("a_name"));
+        ResultSet resultsAlias = Database.BUNGEE.getDatabase().getData("alias", "a_command = '" + this.command + "'");
+        while (resultsAlias.next()) this.alias.add(resultsAlias.getString(2));
         Commands.commandList.put(this.command, this);
     }
 
@@ -36,44 +35,14 @@ public class Commands {
         DataBungee.loadCommands();
     }
 
-    public static boolean isExistCommand(String nameCommand) {
-        return Commands.commandList.containsKey(nameCommand);
-    }
-
-    public static boolean isExistAlias(String alias) {
-        boolean state = false;
-        for (Commands aliasCommand : Commands.commandList.values())
-            if (aliasCommand.alias.contains(alias)) {
-                state = true;
-                break;
-            }
-        return state;
-    }
-
-    public static String getCommandAlias(String alias) {
-        String command = alias;
-        for (Commands aliasCommand : Commands.commandList.values())
-            if (aliasCommand.alias.contains(alias)) {
-                command = aliasCommand.command;
-                break;
-            }
-        return command;
-    }
-
     public static void clear() {
         Commands.commandList.clear();
     }
 
     public static String getCommand(String message) {
-        String alias = null;
-        String command = null;
-        int i = 1;
-        for (; i < message.length() && message.toLowerCase().charAt(i) != ' '; i++) ;
-        if (i > 1) alias = message.toLowerCase().substring(1, i);
-        if (alias != null && Commands.isExistAlias(alias))
-            command = "/" + Commands.getCommandAlias(alias) + message.substring(i);
-        else if (Commands.isExistCommand(alias)) command = message;
-        return command;
+        if(Commands.commandList.containsKey(message)) return null;
+        for(Commands command : Commands.commandList.values()) if(command.alias.contains(message)) return command.command;
+        return null;
     }
 
 }
