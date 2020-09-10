@@ -5,7 +5,10 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
-import net.vorps.api.utils.Settings;
+import net.vorps.api.commands.Player;
+import net.vorps.api.commands.PlayerAdapter;
+import net.vorps.api.data.Data;
+import net.vorps.api.lang.Lang;
 import net.vorps.bungee.Bungee;
 import net.vorps.bungee.players.PlayerData;
 
@@ -21,6 +24,32 @@ public class CommandListener extends Command implements TabExecutor {
         this.command = command;
     }
 
+    static {
+        net.vorps.api.commands.Command.setPlayerAdapter(new PlayerAdapter() {
+            @Override
+            public Player getPlayer(String namePlayer) {
+                return new Player() {
+                    @Override
+                    public void sendMessage(String key, Lang.Args... args) {
+                        if(net.vorps.api.players.PlayerData.isPlayerDataCore(this.getUUID())){
+                            Bungee.getInstance().getProxy().getPlayer(this.getUUID()).sendMessage(new TextComponent(Lang.getMessage(key, net.vorps.api.players.PlayerData.getLang(this.getUUID()), args)));
+                        } else net.vorps.api.players.PlayerData.addNotification(this.getUUID(), key, args);
+                    }
+
+                    @Override
+                    public String getName() {
+                        return namePlayer;
+                    }
+
+                    @Override
+                    public UUID getUUID() {
+                        return Data.getUUIDPlayer(namePlayer);
+                    }
+                };
+            }
+        });
+    }
+
     @Override
     public void execute(CommandSender commandSender, String[] args) {
         this.command.execute(CommandListener.getCommandSender(commandSender), args);
@@ -34,20 +63,16 @@ public class CommandListener extends Command implements TabExecutor {
     private static net.vorps.api.commands.CommandSender getCommandSender(CommandSender commandSender){
         return new net.vorps.api.commands.CommandSender() {
             @Override
-            public void sendMessage(String message) {
-                commandSender.sendMessage(new TextComponent(message));
+            public void sendMessage(String key, Lang.Args... args) {
+                commandSender.sendMessage(new TextComponent(Lang.getMessage(key, PlayerData.getLang(this.getUUID()), args)));
             }
 
             @Override
             public boolean hasPermission(ArrayList<String> permission) {
+                System.out.println(permission.get(0));
                 return  permission.stream().map(commandSender::hasPermission).reduce(true, (last, next) -> last && next);
             }
 
-            @Override
-            public String getLang() {
-                if(commandSender instanceof ProxiedPlayer && PlayerData.isPlayerDataCore(commandSender.getName())) return PlayerData.getPlayerData(commandSender.getName()).getLang();
-                return Settings.getConsoleLang();
-            }
 
             @Override
             public boolean hasPermissionStartWith(String permission) {
@@ -64,8 +89,8 @@ public class CommandListener extends Command implements TabExecutor {
             }
 
             @Override
-            public boolean isPlayer() {
-                return commandSender instanceof ProxiedPlayer;
+            public UUID getUUID() {
+                return commandSender instanceof ProxiedPlayer ? ((ProxiedPlayer) commandSender).getUniqueId() : null;
             }
         };
     }

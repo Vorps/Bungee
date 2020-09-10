@@ -18,15 +18,17 @@ public class ChatEvent implements Listener {
     public void onPlayerChat(net.md_5.bungee.api.event.ChatEvent e) {
         ProxiedPlayer player = (ProxiedPlayer) e.getSender();
         String message = e.getMessage();
+        System.out.println("Message : "+message);
         if(message.startsWith("/")){
             String command = Commands.getCommand(message.split(" ")[0].substring(1).toLowerCase());
             if (command != null) e.setMessage("/"+command);
         } else {
-            PlayerData playerData = PlayerData.getPlayerData(player.getName());
-            if(playerData.isChat()){
+            if(PlayerData.isChat(player.getUniqueId())){
                 String mute = BanSystem.isBan(player.getUniqueId(), BanSystem.TypeBan.MUTE);
                 if(mute != null) player.sendMessage(new TextComponent(mute));
-                else Chat.sendMessage(player, message);
+                else {
+                    Chat.sendMessage(player, message);
+                }
             }
             e.setCancelled(true);
         }

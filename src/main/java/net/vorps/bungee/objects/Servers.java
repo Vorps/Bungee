@@ -2,10 +2,7 @@ package net.vorps.bungee.objects;
 
 import lombok.Getter;
 import net.md_5.bungee.api.config.ServerInfo;
-import net.vorps.api.Exceptions.SqlException;
-import net.vorps.api.data.Data;
 import net.vorps.api.databases.Database;
-import net.vorps.api.databases.DatabaseManager;
 import net.vorps.api.message.ServerState;
 import net.vorps.api.utils.StringBuilder;
 import net.vorps.bungee.Bungee;
@@ -33,7 +30,7 @@ public class Servers extends Server {
         super(name, port);
         try {
             Database.BUNGEE.getDatabase().insertTable("server", name, port, ServerState.WAITING.name());
-        } catch (SqlException e){
+        } catch (SQLException e){
             e.printStackTrace();
         }
         Servers.registerServer(this);
@@ -44,7 +41,7 @@ public class Servers extends Server {
         super.removeServer();
         try {
             Database.BUNGEE.getDatabase().delete("server", "s_name = '" + this.name + "'");
-        } catch (SqlException e){
+        } catch (SQLException e){
             e.printStackTrace();
         }
         Server.servers.remove(this.name);

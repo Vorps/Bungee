@@ -7,11 +7,9 @@ import lombok.Getter;
  */
 public class Settings {
 
-    private static @Getter String defaultLang;
     private static @Getter String motd;
 
     public static void initSettings() {
-        Settings.defaultLang = net.vorps.api.utils.Settings.getSettings("default_lang").getMessage();
         Settings.motd = net.vorps.api.utils.Settings.getSettings("motd").getMessage();
     }
 }

@@ -1,41 +1,31 @@
 package net.vorps.bungee.objects;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.vorps.api.Exceptions.SqlException;
 import net.vorps.api.commands.CommandSender;
+import net.vorps.api.commands.Player;
 import net.vorps.api.data.Data;
 import net.vorps.api.databases.Database;
 import net.vorps.api.lang.Lang;
+import net.vorps.bungee.Bungee;
 import net.vorps.bungee.DataBungee;
 import net.vorps.bungee.players.PlayerData;
 
+import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Project Bungee Created by Vorps on 07/02/2017 at 20:30.
  */
-public class BanSystem {
+public class BanSystem extends KickSystem{
 
-    @AllArgsConstructor
-    public enum TypeBan{
-        BAN("PARDON"),MUTE("UNMUTE"),CHANNEL("PARDON_CHANNEL");
-
-        private final String pardon;
-    }
-
-    private final UUID uuid;
-    private final UUID author;
     private final Long time;
-    private final String reason;
-    private final TypeBan typeBan;
 
     public boolean update() {
         if (this.time != null && this.time <= System.currentTimeMillis()){
@@ -64,16 +54,13 @@ public class BanSystem {
     }
 
     public BanSystem(ResultSet result) throws SQLException{
-        this(UUID.fromString(result.getString(1)), UUID.fromString(result.getString(2)), result.getTimestamp(3) != null ? result.getTimestamp(3).getTime() : null, result.getString(4), result.getString(5));
+        this(UUID.fromString(result.getString(1)), UUID.fromString(result.getString(2)), result.getTimestamp(3) != null ? result.getTimestamp(3).getTime() : null, result.getString(4), TypeBan.valueOf(result.getString(5)));
     }
 
 
-    public BanSystem(UUID uuid, UUID author, Long time, String reason, String typeBan) {
-        this.uuid = uuid;
-        this.author = author;
+    public BanSystem(UUID uuid, UUID author, Long time, String reason, TypeBan typeBan) {
+        super(uuid, author, reason, typeBan);
         this.time = time;
-        this.reason = reason;
-        this.typeBan = TypeBan.valueOf(typeBan);
         BanSystem.banMuteList.put(this.uuid+":"+this.typeBan.name(), this);
     }
 
@@ -84,26 +71,26 @@ public class BanSystem {
         return null;
     }
 
+    public static List<String> getBanList(TypeBan typeBan){
+        return BanSystem.banMuteList.values().stream().filter((e) -> e.typeBan == typeBan).map(e -> Data.getNamePlayer(e.uuid)).collect(Collectors.toList());
+    }
+
     public void remove(){
         try {
             Database.BUNGEE.getDatabase().delete("ban_system", "ban_uuid = '" + this.uuid + "' && ban_type = '"+this.typeBan.name()+"'");
-        } catch (SqlException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         if(PlayerData.isPlayerDataCore(this.uuid)) {
-            PlayerData playerData =  PlayerData.getPlayerData(this.uuid);
-            playerData.getProxiedPlayer().sendMessage(new TextComponent(Lang.getMessage("CMD."+typeBan.name()+".PLAYER.PARDON", playerData.getLang())));
-        } else net.vorps.api.players.PlayerData.addNotification(this.uuid, Lang.getMessage("CMD."+typeBan.name()+".PLAYER.PARDON", PlayerData.getLang(this.uuid)));
+            PlayerData.getPlayerData(this.uuid).sendMessage("CMD."+this.typeBan.name()+".PLAYER.PARDON");
+        } else net.vorps.api.players.PlayerData.addNotification(this.uuid, Lang.getMessage("CMD."+this.typeBan.name()+".PLAYER.PARDON", PlayerData.getLang(this.uuid)));
 
         BanSystem.banMuteList.remove(this.uuid+":"+this.typeBan);
     }
 
     public String toString(String lang) {
         String message;
-        if (time == null && reason == null)
-            message = Lang.getMessage("CMD."+this.typeBan.name()+".PLAYER.DEF", lang, new Lang.Args(Lang.Parameter.AUTHOR, Data.getNamePlayer(author)));
-        else if (time == null)
-            message = Lang.getMessage("CMD."+this.typeBan.name()+".PLAYER.DEF_REASON", lang, new Lang.Args(Lang.Parameter.AUTHOR, Data.getNamePlayer(author)), new Lang.Args(Lang.Parameter.REASON, reason));
+        if(time == null) message = super.toString(lang);
         else if (time > 0 && reason == null)
             message = Lang.getMessage("CMD."+this.typeBan.name()+".PLAYER.TIME", lang, new Lang.Args(Lang.Parameter.AUTHOR, Data.getNamePlayer(author)), new Lang.Args(Lang.Parameter.TIME, Data.FORMAT_DAY_MONTH_YEAR_HOUR_MINUTE_SECOND.format(new Date(time))));
         else
@@ -141,43 +128,34 @@ public class BanSystem {
         return day + hour + minute + second + System.currentTimeMillis();
     }
 
-    public static void banSystemCommand(net.vorps.api.commands.CommandSender author, String namePlayer, String time, String reason, TypeBan typeBan){
-        if (!author.getName().equals(namePlayer)) {
-            if (Data.isPlayer(namePlayer)) {
-                BanSystem banSystem = BanSystem.getBanMute(Data.getUUIDPlayer(namePlayer), typeBan);
-                if(banSystem != null) banSystem.update();
-                banSystem = BanSystem.getBanMute(Data.getUUIDPlayer(namePlayer), typeBan);
-                if (banSystem == null) {
-                    long timeLeft = -1;
-                    if(time != null){
-                        try{
-                            timeLeft = BanSystem.getTime(time);
-                        } catch (NumberFormatException ignored){}
-                    }
-                    try {
-                        Database.BUNGEE.getDatabase().insertTable("ban_system", Data.getUUIDPlayer(namePlayer).toString(),Data.getUUIDPlayer(author.getName()).toString(), timeLeft != -1 ? new Date(timeLeft) : null, reason, typeBan.name());
-                        BanSystem banMute = new BanSystem(Data.getUUIDPlayer(namePlayer), Data.getUUIDPlayer(author.getName()), timeLeft != -1 ? timeLeft : null, reason, typeBan.name());
-                        author.sendMessage(Lang.getMessage("CMD.BAN_SYSTEM.SENDER", author.getLang(), new Lang.Args(Lang.Parameter.PLAYER, namePlayer), new Lang.Args(Lang.Parameter.MESSAGE, banMute.toString(author.getLang()))));
-                        if (PlayerData.isPlayerDataCore(namePlayer))
-                            ProxyServer.getInstance().getPlayer(namePlayer).disconnect(new TextComponent(Lang.getMessage("CMD.BAN_SYSTEM.PLAYER.SHOW", PlayerData.getPlayerData(namePlayer).getLang(), new Lang.Args(Lang.Parameter.MESSAGE, banMute.toString(PlayerData.getPlayerData(namePlayer).getLang())))));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                } else
-                    author.sendMessage(Lang.getMessage("CMD.BAN_SYSTEM.ERROR.ALREADY_BAN", author.getLang(), new Lang.Args(Lang.Parameter.MESSAGE, BanSystem.getBanMute(Data.getUUIDPlayer(namePlayer),typeBan).toString(author.getLang()))));
-            } else
-                author.sendMessage(Lang.getMessage("CMD.ERROR.DONT_KNOW_PLAYER", author.getLang(), new Lang.Args(Lang.Parameter.PLAYER, namePlayer)));
+    public static BanSystem banSystemCommand(net.vorps.api.commands.CommandSender author, Player player, String time, String reason, TypeBan typeBan){
+        BanSystem banSystem = BanSystem.getBanMute(player.getUUID(), typeBan);
+        if(banSystem != null) banSystem.update();
+        banSystem = BanSystem.getBanMute(player.getUUID(), typeBan);
+        if (banSystem == null) {
+            long timeLeft = -1;
+            if(time != null){
+                try{
+                    timeLeft = BanSystem.getTime(time);
+                } catch (NumberFormatException ignored){}
+            }
+            try {
+                Database.BUNGEE.getDatabase().insertTable("ban_system", player.getUUID().toString(),Data.getUUIDPlayer(author.getName()).toString(), timeLeft != -1 ? new Date(timeLeft) : null, reason, typeBan.name());
+                BanSystem banMute = new BanSystem(player.getUUID(), Data.getUUIDPlayer(author.getName()), timeLeft != -1 ? timeLeft : null, reason, typeBan);
+                author.sendMessage("CMD.BAN_SYSTEM.SENDER", new Lang.Args(Lang.Parameter.PLAYER, player.getName()), new Lang.Args(Lang.Parameter.MESSAGE, banMute.toString(PlayerData.getLang(author.getUUID()))));
+                return banMute;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else
-            author.sendMessage(Lang.getMessage("CMD."+typeBan.name()+".ERROR.CANT_BAN_YOURSELF", author.getLang()));
+            author.sendMessage("CMD.BAN_SYSTEM.ERROR.ALREADY_BAN", new Lang.Args(Lang.Parameter.MESSAGE, BanSystem.getBanMute(player.getUUID(),typeBan).toString(PlayerData.getLang(author.getUUID()))));
+        return null;
     }
 
-    public static void pardonSystemCommand(CommandSender author, String namePlayer, TypeBan typeBan){
-        BanSystem banSystem = BanSystem.getBanMute(Data.getUUIDPlayer(namePlayer), typeBan);
-        if (banSystem != null && !banSystem.update()) {
-            banSystem.remove();
-            author.sendMessage(Lang.getMessage("CMD."+typeBan.pardon+".PLAYER", author.getLang(), new Lang.Args(Lang.Parameter.PLAYER, namePlayer)));
-        } else {
-            author.sendMessage(Lang.getMessage("CMD."+typeBan.pardon+".PLAYER_NOT_BAN.ERROR", author.getLang(), new Lang.Args(Lang.Parameter.PLAYER, namePlayer)));
-        }
+    public static void pardonSystemCommand(CommandSender author, Player player, TypeBan typeBan){
+        BanSystem banSystem = BanSystem.getBanMute(player.getUUID(), typeBan);
+        banSystem.remove();
+        author.sendMessage("CMD."+typeBan.getPardon()+".PLAYER.SENDER", new Lang.Args(Lang.Parameter.PLAYER, player.getName()));
     }
 }

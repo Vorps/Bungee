@@ -1,8 +1,6 @@
 package net.vorps.bungee.objects;
 
 import lombok.Getter;
-import net.vorps.api.Exceptions.SqlException;
-import net.vorps.api.data.Data;
 import net.vorps.api.databases.Database;
 import net.vorps.bungee.DataBungee;
 
@@ -19,7 +17,7 @@ public class Commands {
     private @Getter String command;
     private @Getter ArrayList<String> alias;
 
-    public Commands(ResultSet result) throws SQLException, SqlException {
+    public Commands(ResultSet result) throws SQLException{
         this.alias = new ArrayList<>();
         this.command = result.getString(1);
         ResultSet resultsAlias = Database.BUNGEE.getDatabase().getData("alias", "a_command = '" + this.command + "'");

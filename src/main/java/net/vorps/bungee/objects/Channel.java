@@ -1,90 +1,81 @@
 package net.vorps.bungee.objects;
 
 import lombok.Getter;
-import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.vorps.api.Exceptions.SqlException;
-import net.vorps.api.data.Data;
 import net.vorps.api.databases.Database;
-import net.vorps.api.databases.DatabaseManager;
 import net.vorps.api.lang.Lang;
-import net.vorps.api.utils.Settings;
-import net.vorps.api.utils.StringBuilder;
 import net.vorps.bungee.DataBungee;
 import net.vorps.bungee.players.PlayerData;
-import net.vorps.bungee.utils.ChatColor;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
 /**
  * Project Bungee Created by Vorps on 02/03/2017 at 15:56.
  */
-public class Channel {
+public class Channel extends MemberSystem{
 
     private @Getter final String name;
-    private @Getter String label;
-    private @Getter String lore;
-    private @Getter String messageJoin;
-    private @Getter String messageLeave;
-    private @Getter ArrayList<String> admin;
-    private @Getter ArrayList<String> member;
-    private @Getter boolean pub;
-    private @Getter ArrayList<String> visibility;
-    private @Getter ArrayList<String> players;
-    private @Getter Date date;
+    private @Getter final String label;
+    private @Getter final String lore;
+    private @Getter final String messageJoin;
+    private @Getter final String messageLeave;
+    private @Getter final long date;
 
-
-    public boolean isAdmin(UUID uuid) {
-        return this.admin.contains(uuid.toString());
+    private Channel(UUID uuid, boolean isPublic, String name, String label) {
+        this(uuid, isPublic, name, label,  "BUNGEE.CMD.CHAT.CHANNEL.MESSSAGE_LORE", "BUNGEE.CMD.CHAT.CHANNEL.MESSSAGE_JOIN", "BUNGEE.CMD.CHAT.CHANNEL.MESSSAGE_LEAVE", System.currentTimeMillis());
     }
 
-    public boolean isPrimitive() {
-        return this.name.equals(Channel.FRIENDS) || this.name.equals(Channel.ALL) || this.name.equals(Channel.PARTY) || this.name.equals(Channel.ALERT);
-    }
-
-    public boolean isMember(UUID uuid) {
-        return this.member.contains(uuid.toString());
-    }
-
-    public Channel(String name, String label, String player, String server, boolean pub) {
+    private Channel(UUID uuid, boolean isPublic, String name, String label, String lore, String messageJoin, String messageLeave, long date) {
+        super(uuid, isPublic);
         this.name = name;
         this.label = label;
-        this.lore = "BUNGEE.CMD.CHAT.CHANNEL.MESSSAGE_LORE";
-        this.messageJoin = "BUNGEE.CMD.CHAT.CHANNEL.MESSSAGE_JOIN";
-        this.messageLeave = "BUNGEE.CMD.CHAT.CHANNEL.MESSSAGE_LEAVE";
-        this.admin = new ArrayList<>();
-        this.admin.add(Data.getUUIDPlayer(player).toString());
-        this.member = new ArrayList<>();
-        this.member.add(Data.getUUIDPlayer(player).toString());
-        this.pub = pub;
-        this.visibility = new ArrayList<>();
-        this.visibility.add(server);
-        this.players = new ArrayList<>();
-        this.date = new Date(System.currentTimeMillis());
+        this.lore = lore;
+        this.messageJoin = messageJoin;
+        this.messageLeave = messageLeave;
+        this.date = date;
         Channel.channelList.put(this.name, this);
     }
 
     public Channel(ResultSet resultSet) throws SQLException {
-        this.name = resultSet.getString( 1);
-        this.label = resultSet.getString( 2);
-        this.lore = resultSet.getString( 3);
-        this.messageJoin = resultSet.getString( 4);
-        this.messageLeave = resultSet.getString( 5);
-        this.admin = StringBuilder.convert(new StringBuilder(resultSet.getString( 6), ",").getArgs());
-        this.member = StringBuilder.convert(new StringBuilder(resultSet.getString( 7), ",").getArgs());
-        this.pub = resultSet.getBoolean( 8);
-        this.visibility = StringBuilder.convert(new StringBuilder(resultSet.getString( 9), ",").getArgs());
-        this.date = resultSet.getTimestamp( 10);
-        this.players = new ArrayList<>();
-        Channel.channelList.put(this.name, this);
+        this(UUID.fromString(resultSet.getString("party_uuid")), resultSet.getBoolean("party_is_enable"), resultSet.getString("party_name"), resultSet.getString("party_label"), resultSet.getString("party_lore"), resultSet.getString("party_message_join"), resultSet.getString("party_message_leave"), resultSet.getTimestamp("party_date").getTime());
     }
+
+    public void join(UUID uuid) {
+        if(uuid != null){
+            PlayerData.getChannel(uuid).disable(uuid);
+            PlayerData.setChannel(uuid, this);
+            this.enable(uuid);
+        }
+    }
+
+    private void disable(UUID uuid){
+
+    }
+
+    private void enable(UUID uuid) {
+        PlayerData playerData = PlayerData.getPlayerData(uuid);
+        playerData.sendMessage(this.messageJoin, new Lang.Args(Lang.Parameter.CHANNEL, this.name));
+        /*if (this.isAdmin(player.getUniqueId()))
+            this.members.forEach((Member p) -> ProxyServer.getInstance().getPlayer(p.).sendMessage(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.ENABLE.ADMIN", PlayerData.getPlayerData(Data.getNamePlayer(p)).getLang(), new Lang.Args(Lang.Parameter.PLAYER, PlayerData.getPlayerData(player.getName()).toString())))));
+        else if (Rank.getRank(playerData.getRank()).isVisibleRank())
+            this.players.forEach((String p) -> ProxyServer.getInstance().getPlayer(Data.getNamePlayer(p)).sendMessage(new TextComponent(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.ENABLE.GRADE", PlayerData.getPlayerData(Data.getNamePlayer(p)).getLang(), new Lang.Args(Lang.Parameter.PLAYER, PlayerData.getPlayerData(player.getName()).toString()))))));
+        this.players.add(Data.getUUIDPlayer(player.getName()).toString());
+*/    }
+
+
+    //public void removeMember(ProxiedPlayer player) {
+        /*PlayerData playerData = PlayerData.getPlayerData(player.getName());
+        player.sendMessage(new TextComponent(Lang.isLang(this.messageLeave) ? Lang.getMessage(this.messageLeave, playerData.getLang(), new Lang.Args(Lang.Parameter.CHANNEL, this.name)) : this.messageLeave));
+        this.players.remove(Data.getUUIDPlayer(player.getName()).toString());
+        if (this.admin.contains(Data.getUUIDPlayer(player.getName()).toString()))
+            this.players.forEach((String p) -> ProxyServer.getInstance().getPlayer(Data.getNamePlayer(p)).sendMessage(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.DISABLE.ADMIN", PlayerData.getPlayerData(Data.getNamePlayer(p)).getLang(), new Lang.Args(Lang.Parameter.PLAYER, PlayerData.getPlayerData(player.getName()).toString())))));
+        else if (Rank.getRank(playerData.getRank()).isVisibleRank())
+            this.players.forEach((String p) -> ProxyServer.getInstance().getPlayer(Data.getNamePlayer(p)).sendMessage(new TextComponent(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.DISABLE.GRADE", PlayerData.getPlayerData(Data.getNamePlayer(p)).getLang(), new Lang.Args(Lang.Parameter.PLAYER, PlayerData.getPlayerData(player.getName()).toString()))))));
+    */
+    //}
+
 
     /*public static Channel getChannel(String[] args, String sender) {
         Channel channel = PlayerData.getPlayerData(sender).getChannel();
@@ -92,43 +83,11 @@ public class Channel {
         return channel;
     }
 
-    public void join(ProxiedPlayer player, String servers, boolean state) {
-        if (this.visibility.contains(Servers.getTypeServer(servers))) {
-            if (BanSystem.isBan(player.getName(), BanSystem.TypeBan.CHANNEL) != null) {
-                PlayerData playerData = PlayerData.getPlayerData(player.getName());
-                if (!this.players.contains(Data.getUUIDPlayer(player.getName()).toString())) {
-                    if ((this.pub || this.member.contains(player.getUniqueId().toString()) && (!this.name.equals(Channel.PARTY) || playerData.getParty().isState()) && (!this.name.equals(Channel.FRIENDS) || !playerData.getFriends().getFriends().isEmpty()))) {
-                        if (state) playerData.getChannel().disable(player);
-                        playerData.setChannel(this);
-                        this.enable(player);
-                    } else
-                        player.sendMessage(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.JOIN.ERROR_1", playerData.getLang(), new Lang.Args(Lang.Parameter.CHANNEL, this.name))));
-                } else
-                    player.sendMessage(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.JOIN.ERROR_0", playerData.getLang(), new Lang.Args(Lang.Parameter.CHANNEL, this.name))));
-            }
-        } else
-            player.sendMessage(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.JOIN.ERROR_2", PlayerData.getPlayerData(player.getName()).getLang(), new Lang.Args(Lang.Parameter.CHANNEL, this.name))));
-    }
 
-    public void disable(ProxiedPlayer player) {
-        PlayerData playerData = PlayerData.getPlayerData(player.getName());
-        player.sendMessage(new TextComponent(Lang.isLang(this.messageLeave) ? Lang.getMessage(this.messageLeave, playerData.getLang(), new Lang.Args(Lang.Parameter.CHANNEL, this.name)) : this.messageLeave));
-        this.players.remove(Data.getUUIDPlayer(player.getName()).toString());
-        if (this.admin.contains(Data.getUUIDPlayer(player.getName()).toString()))
-            this.players.forEach((String p) -> ProxyServer.getInstance().getPlayer(Data.getNamePlayer(p)).sendMessage(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.DISABLE.ADMIN", PlayerData.getPlayerData(Data.getNamePlayer(p)).getLang(), new Lang.Args(Lang.Parameter.PLAYER, PlayerData.getPlayerData(player.getName()).toString())))));
-        else if (Rank.getRank(playerData.getRank()).isVisibleRank())
-            this.players.forEach((String p) -> ProxyServer.getInstance().getPlayer(Data.getNamePlayer(p)).sendMessage(new TextComponent(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.DISABLE.GRADE", PlayerData.getPlayerData(Data.getNamePlayer(p)).getLang(), new Lang.Args(Lang.Parameter.PLAYER, PlayerData.getPlayerData(player.getName()).toString()))))));
-    }
 
-    private void enable(ProxiedPlayer player) {
-        PlayerData playerData = PlayerData.getPlayerData(player.getName());
-        player.sendMessage(new TextComponent(Lang.isLang(this.messageJoin) ? Lang.getMessage(this.messageJoin, playerData.getLang(), new Lang.Args(Lang.Parameter.CHANNEL, this.name)) : this.messageJoin));
-        if (this.admin.contains(Data.getUUIDPlayer(player.getName()).toString()))
-            this.players.forEach((String p) -> ProxyServer.getInstance().getPlayer(Data.getNamePlayer(p)).sendMessage(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.ENABLE.ADMIN", PlayerData.getPlayerData(Data.getNamePlayer(p)).getLang(), new Lang.Args(Lang.Parameter.PLAYER, PlayerData.getPlayerData(player.getName()).toString())))));
-        else if (Rank.getRank(playerData.getRank()).isVisibleRank())
-            this.players.forEach((String p) -> ProxyServer.getInstance().getPlayer(Data.getNamePlayer(p)).sendMessage(new TextComponent(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.ENABLE.GRADE", PlayerData.getPlayerData(Data.getNamePlayer(p)).getLang(), new Lang.Args(Lang.Parameter.PLAYER, PlayerData.getPlayerData(player.getName()).toString()))))));
-        this.players.add(Data.getUUIDPlayer(player.getName()).toString());
-    }
+
+
+
 
     public void delete(CommandSender sender, String lang) {
         if (this.isAdmin(sender, lang)) {
@@ -310,28 +269,6 @@ public class Channel {
         }
     }
 
-    public static void create(CommandSender sender, String lang, String[] args) {
-        String channel = args[1];
-        String label = args[2];
-        if (!Channel.isChannel(channel)) {
-            String channel1 = Chat.getMessage(channel, "&");
-            String label1 = Chat.getMessage(label);
-            ChatColor.chatColor(sender, label1, "server.chat.color");
-            if ((!channel1.isEmpty() && label.length() <= 10) && (!label1.isEmpty() && label1.length() <= 25)) {
-                Channel channel2 = new Channel(channel1, label1, sender.getName(), (sender instanceof ProxiedPlayer ? Servers.getTypeServer((((ProxiedPlayer) sender).getServer().getInfo().getName())) : Channel.SERVER), false);
-                try {
-                    Database.BUNGEE.getDatabase().insertTable("channel", channel2.name, channel2.label, channel2.lore, channel2.messageJoin, channel2.messageLeave, new StringBuilder(channel2.admin.toArray(new String[channel2.admin.size()]), ",", 0).getString(), new StringBuilder(channel2.member.toArray(new String[channel2.member.size()]), ",", 0).getString(), channel2.pub, new StringBuilder(channel2.visibility.toArray(new String[channel2.visibility.size()]), ",", 0).getString(), channel2.date);
-                } catch (SqlException e) {
-                    e.printStackTrace();
-                }
-                if (sender instanceof ProxiedPlayer)
-                    channel2.join((ProxiedPlayer) sender, ((ProxiedPlayer) sender).getServer().getInfo().getName(), true);
-                sender.sendMessage(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.CREATE.SENDER", lang)));
-            } else
-                sender.sendMessage(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.CREATE.ERROR_1", lang)));
-        } else
-            sender.sendMessage(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.CREATE.ERROR_0", lang, new Lang.Args(Lang.Parameter.CHANNEL, channel))));
-    }
 
     public void config(CommandSender sender, String lang, String[] args) {
         System.out.println("config");
@@ -365,32 +302,28 @@ public class Channel {
         } else sender.sendMessage(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.INFO.ERROR_0", lang)));
     }
 */
-    private static @Getter
-    HashMap<String, Channel> channelList;
+    private static @Getter HashMap<String, Channel> channelList;
 
 
     public static void clear() {
         Channel.channelList.clear();
     }
 
-    private static final String PRIMITIVE[][] = new String[][]{{"ALL", "", "HUB"}, {"ALERT", "§4ALERT", "HUB"}, {"PARTY", "§bParty", "HUB"}, {"FRIENDS", "§bFriends", "HUB"}};
-    public static final String ALL = "ALL";
-    public static final String ALERT = "ALERT";
-    public static final String PARTY = "PARTY";
-    public static final String FRIENDS = "FRIENDS";
-
-    private static final String SERVER = "HUB";
-
     static {
         Channel.channelList = new HashMap<>();
         DataBungee.loadChannel();
-        Channel.setup();
     }
 
-    public static void setup() {
-        for (String[] primitive : PRIMITIVE)
-            new Channel(primitive[0], primitive[1], Settings.getConsole(), primitive[2], true);
+    public static Channel createChannel(String name, String label){
+        Channel channel  = new Channel(UUID.randomUUID(), false, name, label);
+         try {
+            Database.BUNGEE.getDatabase().insertTable("channel", channel.uuid, channel.name, channel.isEnable, channel.label, channel.lore, channel.messageJoin, channel.messageLeave, channel.date);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+         return channel;
     }
+
 
     public static boolean isChannel(String channel) {
         return Channel.channelList.containsKey(channel);
@@ -400,24 +333,34 @@ public class Channel {
         return Channel.channelList.get(channel);
     }
 
-    private boolean isAdmin(CommandSender sender, String lang) {
+    @Override
+    public int getMaxMember() {
+        return 0;
+    }
+
+    @Override
+    public String add(UUID friend) {
+        return null;
+    }
+
+   /* private boolean isAdmin(CommandSender sender, String lang) {
         boolean state = this.isAdmin(Data.getUUIDPlayer(sender.getName()));
         if (!state)
             sender.sendMessage(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.ERROR.ADMIN", lang, new Lang.Args(Lang.Parameter.CHANNEL, this.name))));
         return state;
-    }
+    }*/
 
-    public static void onDisable() {
+    /*public static void onDisable() {
         for (Channel channel : Channel.channelList.values()) {
             try {
                 Database.BUNGEE.getDatabase().updateTable("channel", "cn_name = '" + channel.name + "'", new DatabaseManager.Values("cn_label", channel.label), new DatabaseManager.Values("cn_lore", channel.lore), new DatabaseManager.Values("cn_message_join", channel.messageJoin), new DatabaseManager.Values("cn_message_leave", channel.messageLeave), new DatabaseManager.Values("cn_admin", new StringBuilder(channel.admin.toArray(new String[channel.admin.size()]), ",", 0).getString()), new DatabaseManager.Values("cn_member", new StringBuilder(channel.member.toArray(new String[channel.member.size()]), ",", 0).getString()), new DatabaseManager.Values("cn_public", channel.pub), new DatabaseManager.Values("cn_visibility", new StringBuilder(channel.visibility.toArray(new String[channel.visibility.size()]), ",", 0).getString()));
-            } catch (SqlException e) {
+            } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
-    }
+    }*/
 
-    public static boolean hasAdmin(UUID uuid) {
+/*    public static boolean hasAdmin(UUID uuid) {
         boolean state = false;
         for (Channel channel : Channel.channelList.values()) {
             if (channel.isAdmin(uuid)) {
@@ -426,5 +369,5 @@ public class Channel {
             }
         }
         return state;
-    }
+    }*/
 }

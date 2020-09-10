@@ -20,13 +20,13 @@ import java.io.IOException;
  */
 public class Bungee extends Plugin {
 
-    private @Getter
-    static Bungee instance;
+    private @Getter static Bungee instance;
 
     @SneakyThrows
     @Override
     public void onEnable() {
         Bungee.instance = this;
+        Data.dataClass = DataBungee.class;
         DataCore.setDatabase(Database.BUNGEE.getDatabase());
         Settings.initSettings();
         new ListenerManager(this, new PostLoginEvent(), new ServerConnectEvent(), new PlayerDisconnectEvent(), new ChatEvent(), new ProxyPingEvent());
@@ -58,7 +58,7 @@ public class Bungee extends Plugin {
 
     @Override
     public void onDisable() {
-        //for (PlayerData playerData : PlayerData.getPlayerDataList().values()) playerData.removePlayerData();
+        //for (PlayerData playerData : PlayerData.pla.values()) playerData.removePlayerData();
         //Channel.onDisable();
         NetWorkServer.close();
         Database.closeAllDataBases();
