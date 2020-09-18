@@ -1,5 +1,7 @@
 package net.vorps.bungee.players;
 
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
 import lombok.Getter;
 import lombok.Setter;
 import net.md_5.bungee.api.ProxyServer;
@@ -13,6 +15,7 @@ import net.vorps.api.lang.Lang;
 import net.vorps.api.objects.Rank;
 import net.vorps.bungee.Bungee;
 import net.vorps.bungee.DataBungee;
+import net.vorps.bungee.channel.ChannelManager;
 import net.vorps.bungee.objects.*;
 import net.vorps.dispatcher.Server;
 import org.w3c.dom.Text;
@@ -33,6 +36,7 @@ public class PlayerData extends net.vorps.api.players.PlayerData {
     private boolean isChat;
     private @Setter @Getter UUID whisper_uuid;
     private boolean isVanish;
+    private boolean isFly;
 
     public PlayerData(UUID uuid) {
         super(uuid, ProxyServer.getInstance().getPlayer(uuid).getName());
@@ -192,6 +196,7 @@ public class PlayerData extends net.vorps.api.players.PlayerData {
     public static void setVanish(UUID uuid, boolean isVanish) {
         if(PlayerData.isPlayerDataCore(uuid)){
             PlayerData.getPlayerData(uuid).isVanish = isVanish;
+            new ChannelManager().setChannel("BungeeCord").setSubChannel("VANISH").addValues(isVanish).send(Bungee.getInstance(), uuid);
         }
         try {
             Database.BUNGEE.getDatabase().updateTable("player_setting", "ps_uuid = '" + uuid + "'", new DatabaseManager.Values("ps_vanish", isVanish));
@@ -199,6 +204,8 @@ public class PlayerData extends net.vorps.api.players.PlayerData {
             e.printStackTrace();
         }
     }
+
+
 
     public static boolean isVanish(UUID uuid) {
         boolean isVanish = true;
@@ -212,6 +219,44 @@ public class PlayerData extends net.vorps.api.players.PlayerData {
             }
         }
         return isVanish;
+    }
+
+    public static void setFly(UUID uuid, boolean isFly) {
+        if(PlayerData.isPlayerDataCore(uuid)){
+            PlayerData playerData =  PlayerData.getPlayerData(uuid);
+            playerData.isFly = isFly;
+            new ChannelManager().setChannel("BungeeCord").setSubChannel("FLY").addValues(isFly).send(Bungee.getInstance(), uuid);
+        }
+        try {
+            Database.BUNGEE.getDatabase().updateTable("player_setting", "ps_uuid = '" + uuid + "'", new DatabaseManager.Values("ps_fly", isFly));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static boolean isFly(UUID uuid) {
+        boolean isFly = false;
+        if(PlayerData.isPlayerDataCore(uuid)){
+            isFly =  PlayerData.getPlayerData(uuid).isFly;
+        } else if(Data.isPlayer(uuid)){
+            try {
+                isFly = Database.BUNGEE.getDatabase().getDataUnique("player_setting", "ps_uuid = '" + uuid + "'").getBoolean("ps_fly");
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return isFly;
+    }
+
+    public static void setLang(UUID uuid, String lang) {
+        if(PlayerData.isPlayerDataCore(uuid)){
+            PlayerData.getPlayerData(uuid).lang = lang;
+        }
+        try {
+            Database.BUNGEE.getDatabase().updateTable("player_setting", "ps_uuid = '" + uuid + "'", new DatabaseManager.Values("ps_lang", lang));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -242,13 +287,7 @@ public class PlayerData extends net.vorps.api.players.PlayerData {
         }
     }
 
-    public static void setLang(UUID uuid, String lang) {
-        try {
-            Database.BUNGEE.getDatabase().updateTable("player_setting", "ps_uuid = '" + uuid + "'", new DatabaseManager.Values("ps_lang", lang));
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
+
 
     public static void setRank(UUID uuid, String rank) {
         try {

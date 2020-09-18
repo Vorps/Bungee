@@ -12,7 +12,9 @@ import net.vorps.dispatcher.Server;
 import java.net.InetSocketAddress;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Project Bungee Created by Vorps on 10/02/2017 at 03:49.
@@ -65,6 +67,10 @@ public class Servers extends Server {
 
     public static boolean isTypeServer(String server, String type) {
         return (new StringBuilder(server, "_").getArgs()[0]).equals(type);
+    }
+
+    public static List<String> getServers() {
+        return new ArrayList<>(Server.servers.keySet());
     }
 
     public static void clear() {

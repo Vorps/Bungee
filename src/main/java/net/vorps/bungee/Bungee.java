@@ -26,6 +26,7 @@ public class Bungee extends Plugin {
     @Override
     public void onEnable() {
         Bungee.instance = this;
+        this.getProxy().registerChannel("BungeeCord");
         Data.dataClass = DataBungee.class;
         DataCore.setDatabase(Database.BUNGEE.getDatabase());
         Settings.initSettings();

@@ -8,9 +8,7 @@ import net.vorps.api.commands.Player;
 import net.vorps.api.lang.Lang;
 import net.vorps.bungee.Bungee;
 import net.vorps.bungee.objects.BanSystem;
-import net.vorps.bungee.objects.KickSystem;
 import net.vorps.bungee.players.PlayerData;
-
 
 public class Ban {
 

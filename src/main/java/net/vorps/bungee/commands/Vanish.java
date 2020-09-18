@@ -17,7 +17,7 @@ public class Vanish {
 
     @CommandPermission(value = "sender", console = false)
     public static void off(CommandSender commandSender){
-        new CommandsAction("VANISH", commandSender, (e) -> PlayerData.setVanish(commandSender.getUUID(), e), () -> PlayerData.isVanish(commandSender.getUUID())).on();
+        new CommandsAction("VANISH", commandSender, (e) -> PlayerData.setVanish(commandSender.getUUID(), e), () -> PlayerData.isVanish(commandSender.getUUID())).off();
     }
 
     @CommandPermission("player")
@@ -32,7 +32,7 @@ public class Vanish {
 
     @CommandPermission("player")
     public static void off(CommandSender commandSender, @CommandParameter("PLAYER_EXCEPT_SENDER") Player player){
-        new CommandsAction("VANISH", commandSender, (e) -> PlayerData.setVanish(player.getUUID(), e), () -> PlayerData.isVanish(player.getUUID())).on(player);
+        new CommandsAction("VANISH", commandSender, (e) -> PlayerData.setVanish(player.getUUID(), e), () -> PlayerData.isVanish(player.getUUID())).off(player);
     }
 
 }
