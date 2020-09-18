@@ -8,6 +8,7 @@ import net.vorps.bungee.Bungee;
 import net.vorps.bungee.objects.BanSystem;
 import net.vorps.bungee.objects.KickSystem;
 import net.vorps.bungee.objects.Servers;
+import net.vorps.bungee.players.PlayerData;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;
@@ -30,7 +31,11 @@ public enum CommandManager {
     INVSEE(new Command("invsee", 0, InvSee.class)),
     CONNECT(new Command("connect", 0, Connect.class)),
     HUB(new Command("hub", 0, Hub.class)),
-    LANG(new Command("lang", 0, net.vorps.bungee.commands.Lang.class));
+    LANG(new Command("lang", 0, net.vorps.bungee.commands.Lang.class)),
+    RANK(new Command("rank", 0, Rank.class)),
+    MONEY(new Command("money", 0, Money.class)),
+    BUILD(new Command("build", 0, Build.class)),
+    INFO(new Command("info", 0, Info.class));
 
     private @Getter final Command command;
 
@@ -51,6 +56,8 @@ public enum CommandManager {
         Command.addCompletion(new TabCompletion("SERVER",  (commandSender) -> Servers.getServers()));
         Command.addCompletion(new TabCompletion("HUB_NUMBER", (commandSender) -> Servers.getServers().stream().filter(e -> e.startsWith("HUB_")).map(e -> e.split("_")[1]).collect(Collectors.toList())));
         Command.addCompletion(new TabCompletion("LANG", (commandSender) -> new ArrayList<>(LangSetting.getListLangSetting())));
+        Command.addCompletion(new TabCompletion("RANK", (commandSender) -> net.vorps.api.objects.Rank.getRanks().stream().filter(e -> commandSender.hasPermission("rank."+e)).collect(Collectors.toList())));
+        Command.addCompletion(new TabCompletion("MONEY", (commandSender) -> net.vorps.api.objects.Money.getMoneys().stream().filter(e -> commandSender.hasPermission("money."+e)).collect(Collectors.toList())));
     }
 
     CommandManager(Command command){

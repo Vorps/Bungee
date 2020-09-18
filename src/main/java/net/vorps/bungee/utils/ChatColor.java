@@ -13,7 +13,7 @@ public class ChatColor {
 
     public static String chatColor(CommandSender sender, String message, String permission) {
         StringBuilder messageBuild = new StringBuilder(message);
-        if (sender.hasPermission(new ArrayList<>(Collections.singleton(permission)))) {
+        if (sender.hasPermission(permission)) {
             for (int i = 0; i < messageBuild.length(); i++) {
                 if (messageBuild.charAt(i) == '&') {
                     messageBuild.replace(i, i + 1, "§");

@@ -18,7 +18,6 @@ public class ChatEvent implements Listener {
     public void onPlayerChat(net.md_5.bungee.api.event.ChatEvent e) {
         ProxiedPlayer player = (ProxiedPlayer) e.getSender();
         String message = e.getMessage();
-        System.out.println("Message : "+message);
         if(message.startsWith("/")){
             String command = Commands.getCommand(message.split(" ")[0].substring(1).toLowerCase());
             if (command != null) e.setMessage("/"+command);

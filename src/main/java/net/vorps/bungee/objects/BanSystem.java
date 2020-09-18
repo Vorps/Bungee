@@ -92,9 +92,9 @@ public class BanSystem extends KickSystem{
         String message;
         if(time == null) message = super.toString(lang);
         else if (time > 0 && reason == null)
-            message = Lang.getMessage("CMD."+this.typeBan.name()+".PLAYER.TIME", lang, new Lang.Args(Lang.Parameter.AUTHOR, Data.getNamePlayer(author)), new Lang.Args(Lang.Parameter.TIME, Data.FORMAT_DAY_MONTH_YEAR_HOUR_MINUTE_SECOND.format(new Date(time))));
+            message = Lang.getMessage("CMD."+this.typeBan.name()+".PLAYER.TIME", lang, new Lang.Args(Lang.Parameter.TIME, Data.FORMAT_DAY_MONTH_YEAR_HOUR_MINUTE_SECOND.format(new Date(time))));
         else
-            message = Lang.getMessage("CMD."+this.typeBan.name()+".PLAYER.TIME_REASON", lang, new Lang.Args(Lang.Parameter.AUTHOR, Data.getNamePlayer(author)), new Lang.Args(Lang.Parameter.TIME, Data.FORMAT_DAY_MONTH_YEAR_HOUR_MINUTE_SECOND.format(new Date(time))), new Lang.Args(Lang.Parameter.REASON, reason));
+            message = Lang.getMessage("CMD."+this.typeBan.name()+".PLAYER.TIME_REASON", lang, new Lang.Args(Lang.Parameter.TIME, Data.FORMAT_DAY_MONTH_YEAR_HOUR_MINUTE_SECOND.format(new Date(time))), new Lang.Args(Lang.Parameter.MESSAGE, reason));
         return message;
     }
 

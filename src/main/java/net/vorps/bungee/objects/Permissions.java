@@ -2,6 +2,7 @@ package net.vorps.bungee.objects;
 
 import net.vorps.bungee.Bungee;
 import net.vorps.bungee.DataBungee;
+import net.vorps.bungee.commands.Rank;
 import net.vorps.bungee.players.PlayerData;
 
 import java.sql.ResultSet;
@@ -30,10 +31,9 @@ public class Permissions {
         DataBungee.loadPermission();
     }
 
-    public static void permissionRank(UUID uuid) {
+    public static void permissionRank(UUID uuid, String rank) {
         Permissions.permissionsList.values().forEach((Permissions permissions) -> {
-            if (PlayerData.getRank(uuid).getRank().equals(permissions.rank))
-                Bungee.getInstance().getProxy().getPlayer(uuid).setPermission(permissions.permission, true);
+            Bungee.getInstance().getProxy().getPlayer(uuid).setPermission(permissions.permission, rank.equals(permissions.rank));
         });
     }
 

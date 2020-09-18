@@ -35,16 +35,14 @@ public class PlayerData extends net.vorps.api.players.PlayerData {
     private final Friends friends;
     private boolean isChat;
     private @Setter @Getter UUID whisper_uuid;
-    private boolean isVanish;
-    private boolean isFly;
+
 
     public PlayerData(UUID uuid) {
         super(uuid, ProxyServer.getInstance().getPlayer(uuid).getName());
         this.channel = PlayerData.getChannel(uuid);
         this.friends = PlayerData.getFriends(uuid);
         this.isChat = PlayerData.isChat(uuid);
-        this.isVanish = PlayerData.isVanish(uuid);
-        Permissions.permissionRank(super.UUID);
+        Permissions.permissionRank(super.UUID, this.rank.getRank());
         this.showNotification();
     }
 
@@ -81,6 +79,7 @@ public class PlayerData extends net.vorps.api.players.PlayerData {
         PlayerData.setChat(super.UUID, this.isChat);
         try {
         Database.BUNGEE.getDatabase().updateTable("player", "p_uuid = '" + super.UUID + "'", new DatabaseManager.Values("p_online", false));
+
         } catch (SQLException err) {
             err.printStackTrace();
         }
@@ -206,21 +205,6 @@ public class PlayerData extends net.vorps.api.players.PlayerData {
     }
 
 
-
-    public static boolean isVanish(UUID uuid) {
-        boolean isVanish = true;
-        if(PlayerData.isPlayerDataCore(uuid)){
-            isVanish =  PlayerData.getPlayerData(uuid).isVanish;
-        } else if(Data.isPlayer(uuid)){
-            try {
-                isVanish = Database.BUNGEE.getDatabase().getDataUnique("player_setting", "ps_uuid = '" + uuid + "'").getBoolean("ps_vanish");
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return isVanish;
-    }
-
     public static void setFly(UUID uuid, boolean isFly) {
         if(PlayerData.isPlayerDataCore(uuid)){
             PlayerData playerData =  PlayerData.getPlayerData(uuid);
@@ -234,19 +218,71 @@ public class PlayerData extends net.vorps.api.players.PlayerData {
         }
     }
 
-    public static boolean isFly(UUID uuid) {
-        boolean isFly = false;
+    public static void setBuild(UUID uuid, boolean isBuild) {
         if(PlayerData.isPlayerDataCore(uuid)){
-            isFly =  PlayerData.getPlayerData(uuid).isFly;
-        } else if(Data.isPlayer(uuid)){
+            PlayerData playerData =  PlayerData.getPlayerData(uuid);
+            playerData.isBuild = isBuild;
+            new ChannelManager().setChannel("BungeeCord").setSubChannel("BUILD").addValues(isBuild).send(Bungee.getInstance(), uuid);
+        }
+        try {
+            Database.BUNGEE.getDatabase().updateTable("player_setting", "ps_uuid = '" + uuid + "'", new DatabaseManager.Values("ps_build", isBuild));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void setVisible(UUID uuid, boolean isVisible) {
+        if(PlayerData.isPlayerDataCore(uuid)){
+            PlayerData playerData =  PlayerData.getPlayerData(uuid);
+            playerData.isVisible = isVisible;
+            new ChannelManager().setChannel("BungeeCord").setSubChannel("BUILD").addValues(isVisible).send(Bungee.getInstance(), uuid);
+        }
+        try {
+            Database.BUNGEE.getDatabase().updateTable("player_setting", "ps_uuid = '" + uuid + "'", new DatabaseManager.Values("ps_visible", isVisible));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Date getDateLast(UUID uuid) {
+        Date dateLast = new Date();
+        if(uuid != null && Data.isPlayer(uuid)){
             try {
-                isFly = Database.BUNGEE.getDatabase().getDataUnique("player_setting", "ps_uuid = '" + uuid + "'").getBoolean("ps_fly");
+                dateLast = new Date(Database.BUNGEE.getDatabase().getDataUnique("player", "p_uuid = '" + uuid + "'").getTimestamp("p_date_last").getTime());
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
-        return isFly;
+        return dateLast;
     }
+
+    public static Date getDateFirst(UUID uuid) {
+        Date dateFirst = new Date();
+        if(uuid != null && Data.isPlayer(uuid)){
+            try {
+                dateFirst = new Date(Database.BUNGEE.getDatabase().getDataUnique("player", "p_uuid = '" + uuid + "'").getTimestamp("p_date_first").getTime());
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return dateFirst;
+    }
+
+
+    public static String getIp(UUID uuid) {
+        String ip = "";
+        if(uuid != null && Data.isPlayer(uuid)){
+            try {
+                ip = Database.BUNGEE.getDatabase().getDataUnique("player", "p_uuid = '" + uuid + "'").getString("p_ip");
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return ip;
+    }
+
+
+
 
     public static void setLang(UUID uuid, String lang) {
         if(PlayerData.isPlayerDataCore(uuid)){
@@ -254,6 +290,18 @@ public class PlayerData extends net.vorps.api.players.PlayerData {
         }
         try {
             Database.BUNGEE.getDatabase().updateTable("player_setting", "ps_uuid = '" + uuid + "'", new DatabaseManager.Values("ps_lang", lang));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void setRank(UUID uuid, Rank rank) {
+        if(PlayerData.isPlayerDataCore(uuid)){
+            PlayerData.getPlayerData(uuid).rank = rank;
+            Permissions.permissionRank(uuid, rank.getRank());
+        }
+        try {
+            Database.BUNGEE.getDatabase().updateTable("player_setting", "ps_uuid = '" + uuid + "'", new DatabaseManager.Values("ps_rank", rank.getRank()));
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -286,17 +334,6 @@ public class PlayerData extends net.vorps.api.players.PlayerData {
             }
         }
     }
-
-
-
-    public static void setRank(UUID uuid, String rank) {
-        try {
-            Database.BUNGEE.getDatabase().updateTable("player_setting", "ps_uuid = '" + uuid + "'", new DatabaseManager.Values("ps_rank", rank));
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
 
     @Override
     public String toString() {

@@ -31,8 +31,8 @@ public class KickSystem {
 
     public String toString(String lang) {
         String message;
-        if(this.reason.length() == 0) message = Lang.getMessage("CMD."+this.typeBan.name()+".PLAYER", lang, new Lang.Args(Lang.Parameter.AUTHOR, Data.getNamePlayer(author)));
-        else message = Lang.getMessage("CMD."+this.typeBan.name()+".PLAYER.REASON", lang, new Lang.Args(Lang.Parameter.AUTHOR, Data.getNamePlayer(author)), new Lang.Args(Lang.Parameter.REASON, reason));
+        if(this.reason.length() == 0) message = Lang.getMessage("CMD."+this.typeBan.name()+".PLAYER", lang);
+        else message = Lang.getMessage("CMD."+this.typeBan.name()+".PLAYER.REASON", lang, new Lang.Args(Lang.Parameter.MESSAGE, reason));
         return message;
     }
 

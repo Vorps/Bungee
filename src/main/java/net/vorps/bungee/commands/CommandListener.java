@@ -12,7 +12,9 @@ import net.vorps.api.lang.Lang;
 import net.vorps.bungee.Bungee;
 import net.vorps.bungee.players.PlayerData;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class CommandListener extends Command implements TabExecutor {
@@ -68,9 +70,8 @@ public class CommandListener extends Command implements TabExecutor {
             }
 
             @Override
-            public boolean hasPermission(ArrayList<String> permission) {
-                System.out.println(permission.get(0));
-                return  permission.stream().map(commandSender::hasPermission).reduce(true, (last, next) -> last && next);
+            public boolean hasPermission(String ...permission) {
+                return  Arrays.stream(permission).map(commandSender::hasPermission).reduce(true, (last, next) -> last && next);
             }
 
 

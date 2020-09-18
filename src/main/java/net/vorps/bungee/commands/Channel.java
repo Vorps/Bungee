@@ -1,10 +1,7 @@
 package net.vorps.bungee.commands;
 
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.vorps.api.commands.CommandParameter;
-import net.vorps.api.commands.CommandPermission;
 import net.vorps.api.commands.CommandSender;
-import net.vorps.api.lang.Lang;
 import net.vorps.bungee.objects.BanSystem;
 import net.vorps.bungee.objects.Chat;
 import net.vorps.bungee.objects.Member;
@@ -15,15 +12,16 @@ public class Channel {
     public static void create(CommandSender sender, @CommandParameter("name")  String nameChannel, @CommandParameter("label") String labelChat) {
         if (!net.vorps.bungee.objects.Channel.isChannel(nameChannel)) {
             nameChannel = Chat.getMessage(nameChannel, "&");
-            labelChat = ChatColor.chatColor(sender,  Chat.getMessage(labelChat), "server.chat.color");
+            labelChat = ChatColor.chatColor(sender, Chat.getMessage(labelChat), "server.chat.color");
             if ((!nameChannel.isEmpty() && nameChannel.length() <= 10) && (!labelChat.isEmpty() && labelChat.length() <= 25)) {
-                net.vorps.bungee.objects.Channel channel = net.vorps.bungee.objects.Channel.createChannel(nameChannel,labelChat);
+                net.vorps.bungee.objects.Channel channel = net.vorps.bungee.objects.Channel.createChannel(nameChannel, labelChat);
                 channel.join(sender.getUUID());
                 sender.sendMessage("CMD.CHANNEL.CREATE.SENDER");
             } else
                 sender.sendMessage("CMD.CHANNEL.CREATE.INVALID_LABEL");
-        } else
-            sender.sendMessage("CMD.CHANNEL.CREATE.ALREADY_EXIST", new Lang.Args(Lang.Parameter.CHANNEL, nameChannel));
+        }
+        /*} else
+            sender.sendMessage("CMD.CHANNEL.CREATE.ALREADY_EXIST", new Lang.Args(Lang.Parameter.CHANNEL, nameChannel));*/
     }
 
 

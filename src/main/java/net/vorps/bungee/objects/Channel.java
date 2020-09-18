@@ -56,7 +56,7 @@ public class Channel extends MemberSystem{
 
     private void enable(UUID uuid) {
         PlayerData playerData = PlayerData.getPlayerData(uuid);
-        playerData.sendMessage(this.messageJoin, new Lang.Args(Lang.Parameter.CHANNEL, this.name));
+        //playerData.sendMessage(this.messageJoin, new Lang.Args(Lang.Parameter.CHANNEL, this.name));
         /*if (this.isAdmin(player.getUniqueId()))
             this.members.forEach((Member p) -> ProxyServer.getInstance().getPlayer(p.).sendMessage(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.ENABLE.ADMIN", PlayerData.getPlayerData(Data.getNamePlayer(p)).getLang(), new Lang.Args(Lang.Parameter.PLAYER, PlayerData.getPlayerData(player.getName()).toString())))));
         else if (Rank.getRank(playerData.getRank()).isVisibleRank())
