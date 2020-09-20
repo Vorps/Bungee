@@ -1,14 +1,9 @@
 package net.vorps.bungee.objects;
 
 import lombok.Getter;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.vorps.api.data.Data;
-import net.vorps.api.lang.Lang;
-import net.vorps.api.utils.ChatColor;
 import net.vorps.api.utils.StringBuilder;
-import net.vorps.bungee.DataBungee;
+import net.vorps.bungee.data.DataBungee;
 import net.vorps.bungee.players.PlayerData;
 
 import java.sql.ResultSet;

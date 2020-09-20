@@ -1,10 +1,7 @@
 package net.vorps.bungee.objects;
 
-import net.vorps.bungee.DataBungee;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
 
 public class ServersType extends net.vorps.dispatcher.ServerType {
 

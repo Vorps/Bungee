@@ -6,7 +6,7 @@ import net.vorps.api.databases.Database;
 import net.vorps.api.message.ServerState;
 import net.vorps.api.utils.StringBuilder;
 import net.vorps.bungee.Bungee;
-import net.vorps.bungee.DataBungee;
+import net.vorps.bungee.data.DataBungee;
 import net.vorps.dispatcher.Server;
 
 import java.net.InetSocketAddress;

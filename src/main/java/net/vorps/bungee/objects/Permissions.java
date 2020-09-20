@@ -1,9 +1,7 @@
 package net.vorps.bungee.objects;
 
 import net.vorps.bungee.Bungee;
-import net.vorps.bungee.DataBungee;
-import net.vorps.bungee.commands.Rank;
-import net.vorps.bungee.players.PlayerData;
+import net.vorps.bungee.data.DataBungee;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

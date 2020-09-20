@@ -8,6 +8,8 @@ import net.vorps.api.data.DataCore;
 import net.vorps.api.databases.Database;
 import net.vorps.api.message.NetWorkServer;
 import net.vorps.bungee.commands.CommandManager;
+import net.vorps.bungee.data.DataBungee;
+import net.vorps.bungee.data.SettingsBungee;
 import net.vorps.bungee.listeners.*;
 import net.vorps.bungee.objects.Servers;
 import net.vorps.dispatcher.CreateServerException;
@@ -29,7 +31,7 @@ public class Bungee extends Plugin {
         this.getProxy().registerChannel("BungeeCord");
         Data.dataClass = DataBungee.class;
         DataCore.setDatabase(Database.BUNGEE.getDatabase());
-        Settings.initSettings();
+        SettingsBungee.initSettings();
         new ListenerManager(this, new PostLoginEvent(), new ServerConnectEvent(), new PlayerDisconnectEvent(), new ChatEvent(), new ProxyPingEvent());
         DataBungee.loadServerType();
         Servers.registerServer();

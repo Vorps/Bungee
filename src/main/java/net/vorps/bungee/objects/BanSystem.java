@@ -1,17 +1,14 @@
 package net.vorps.bungee.objects;
 
 import lombok.Getter;
-import net.md_5.bungee.api.chat.TextComponent;
 import net.vorps.api.commands.CommandSender;
 import net.vorps.api.commands.Player;
 import net.vorps.api.data.Data;
 import net.vorps.api.databases.Database;
 import net.vorps.api.lang.Lang;
-import net.vorps.bungee.Bungee;
-import net.vorps.bungee.DataBungee;
+import net.vorps.bungee.data.DataBungee;
 import net.vorps.bungee.players.PlayerData;
 
-import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;

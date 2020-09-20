@@ -2,12 +2,13 @@ package net.vorps.bungee.objects;
 
 import lombok.Getter;
 import net.vorps.api.databases.Database;
-import net.vorps.api.lang.Lang;
-import net.vorps.bungee.DataBungee;
+import net.vorps.bungee.data.DataBungee;
 import net.vorps.bungee.players.PlayerData;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -22,6 +23,7 @@ public class Channel extends MemberSystem{
     private @Getter final String messageJoin;
     private @Getter final String messageLeave;
     private @Getter final long date;
+    private ArrayList<UUID> admin;
 
     private Channel(UUID uuid, boolean isPublic, String name, String label) {
         this(uuid, isPublic, name, label,  "BUNGEE.CMD.CHAT.CHANNEL.MESSSAGE_LORE", "BUNGEE.CMD.CHAT.CHANNEL.MESSSAGE_JOIN", "BUNGEE.CMD.CHAT.CHANNEL.MESSSAGE_LEAVE", System.currentTimeMillis());
@@ -35,6 +37,7 @@ public class Channel extends MemberSystem{
         this.messageJoin = messageJoin;
         this.messageLeave = messageLeave;
         this.date = date;
+        this.admin = new ArrayList<>();
         Channel.channelList.put(this.name, this);
     }
 
@@ -44,10 +47,16 @@ public class Channel extends MemberSystem{
 
     public void join(UUID uuid) {
         if(uuid != null){
-            PlayerData.getChannel(uuid).disable(uuid);
+            if(PlayerData.getChannel(uuid) != null){
+                PlayerData.getChannel(uuid).disable(uuid);
+            }
             PlayerData.setChannel(uuid, this);
             this.enable(uuid);
         }
+    }
+
+    private boolean isAdmin(UUID uuid){
+        return true;
     }
 
     private void disable(UUID uuid){
@@ -55,14 +64,15 @@ public class Channel extends MemberSystem{
     }
 
     private void enable(UUID uuid) {
-        PlayerData playerData = PlayerData.getPlayerData(uuid);
-        //playerData.sendMessage(this.messageJoin, new Lang.Args(Lang.Parameter.CHANNEL, this.name));
-        /*if (this.isAdmin(player.getUniqueId()))
+        /*PlayerData playerData = PlayerData.getPlayerData(uuid);
+        playerData.sendMessage(this.messageJoin, new Lang.Args(Lang.Parameter.CHANNEL, this.name));
+        if (this.isAdmin(player.getUniqueId()))
             this.members.forEach((Member p) -> ProxyServer.getInstance().getPlayer(p.).sendMessage(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.ENABLE.ADMIN", PlayerData.getPlayerData(Data.getNamePlayer(p)).getLang(), new Lang.Args(Lang.Parameter.PLAYER, PlayerData.getPlayerData(player.getName()).toString())))));
-        else if (Rank.getRank(playerData.getRank()).isVisibleRank())
-            this.players.forEach((String p) -> ProxyServer.getInstance().getPlayer(Data.getNamePlayer(p)).sendMessage(new TextComponent(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.ENABLE.GRADE", PlayerData.getPlayerData(Data.getNamePlayer(p)).getLang(), new Lang.Args(Lang.Parameter.PLAYER, PlayerData.getPlayerData(player.getName()).toString()))))));
-        this.players.add(Data.getUUIDPlayer(player.getName()).toString());
-*/    }
+        //else if (Rank.getRank(playerData.getRank()).isVisibleRank())
+        //    this.players.forEach((String p) -> ProxyServer.getInstance().getPlayer(Data.getNamePlayer(p)).sendMessage(new TextComponent(new TextComponent(Lang.getMessage("BUNGEE.CMD.CHAT.CHANNEL.ENABLE.GRADE", PlayerData.getPlayerData(Data.getNamePlayer(p)).getLang(), new Lang.Args(Lang.Parameter.PLAYER, PlayerData.getPlayerData(player.getName()).toString()))))));
+        //this.players.add(Data.getUUIDPlayer(player.getName()).toString());
+    */
+    }
 
 
     //public void removeMember(ProxiedPlayer player) {
@@ -317,7 +327,7 @@ public class Channel extends MemberSystem{
     public static Channel createChannel(String name, String label){
         Channel channel  = new Channel(UUID.randomUUID(), false, name, label);
          try {
-            Database.BUNGEE.getDatabase().insertTable("channel", channel.uuid, channel.name, channel.isEnable, channel.label, channel.lore, channel.messageJoin, channel.messageLeave, channel.date);
+            Database.BUNGEE.getDatabase().insertTable("channel", channel.uuid, channel.name, channel.label, channel.lore, channel.messageJoin, channel.messageLeave, channel.isEnable, new Date(channel.date));
         } catch (SQLException e) {
             e.printStackTrace();
         }

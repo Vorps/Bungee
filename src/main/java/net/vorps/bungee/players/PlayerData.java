@@ -1,24 +1,19 @@
 package net.vorps.bungee.players;
 
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
 import lombok.Getter;
 import lombok.Setter;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.vorps.api.commands.Player;
 import net.vorps.api.data.Data;
 import net.vorps.api.databases.Database;
 import net.vorps.api.databases.DatabaseManager;
 import net.vorps.api.lang.Lang;
 import net.vorps.api.objects.Rank;
 import net.vorps.bungee.Bungee;
-import net.vorps.bungee.DataBungee;
 import net.vorps.bungee.channel.ChannelManager;
 import net.vorps.bungee.objects.*;
 import net.vorps.dispatcher.Server;
-import org.w3c.dom.Text;
 
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
@@ -32,21 +27,18 @@ public class PlayerData extends net.vorps.api.players.PlayerData {
 
     private Server server;
     private Channel channel;
-    private final Friends friends;
+    private Friends friends;
     private boolean isChat;
     private @Setter @Getter UUID whisper_uuid;
 
 
     public PlayerData(UUID uuid) {
         super(uuid, ProxyServer.getInstance().getPlayer(uuid).getName());
-        this.channel = PlayerData.getChannel(uuid);
-        this.friends = PlayerData.getFriends(uuid);
-        this.isChat = PlayerData.isChat(uuid);
         Permissions.permissionRank(super.UUID, this.rank.getRank());
         this.showNotification();
     }
 
-    public static boolean updatePlayerDataDataBase(ProxiedPlayer player, String playerIp) {
+    public static void updatePlayerDataDataBase(ProxiedPlayer player, String playerIp) {
         try {
             List<DatabaseManager.Values> valuesArrayList = new ArrayList<>();
             valuesArrayList.add(new DatabaseManager.Values("p_online", true));
@@ -69,9 +61,14 @@ public class PlayerData extends net.vorps.api.players.PlayerData {
             Database.BUNGEE.getDatabase().updateTable("player", "p_uuid = '" + player.getUniqueId() + "'", valuesArrayList.toArray(new DatabaseManager.Values[0]));
         } catch (SQLException err) {
             err.printStackTrace();
-            return false;
         }
-        return true;
+    }
+
+    @Override
+    public void init() {
+        this.channel = PlayerData.getChannel(this.UUID);
+        this.friends = PlayerData.getFriends(this.UUID);
+        this.isChat = PlayerData.isChat(this.UUID);
     }
 
     public void removePlayerData() {
@@ -335,11 +332,6 @@ public class PlayerData extends net.vorps.api.players.PlayerData {
         }
     }
 
-    @Override
-    public String toString() {
-        return this.rank.toString() + " " + this.name;
-    }
-
     public static PlayerData getPlayerData(String name) {
         return (PlayerData) PlayerData.getPlayerDataCore(name);
     }
@@ -352,5 +344,6 @@ public class PlayerData extends net.vorps.api.players.PlayerData {
     public void sendMessage(String key, Lang.Args... args) {
         Bungee.getInstance().getProxy().getPlayer(super.UUID).sendMessage(new TextComponent(Lang.getMessage(key, PlayerData.getLang(super.UUID), args)));
     }
+
 
 }

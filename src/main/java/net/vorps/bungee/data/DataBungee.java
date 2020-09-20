@@ -1,4 +1,4 @@
-package net.vorps.bungee;
+package net.vorps.bungee.data;
 
 import net.vorps.api.data.DataCore;
 import net.vorps.api.data.DataReload;

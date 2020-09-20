@@ -2,7 +2,7 @@ package net.vorps.bungee.objects;
 
 import lombok.Getter;
 import net.vorps.api.databases.Database;
-import net.vorps.bungee.DataBungee;
+import net.vorps.bungee.data.DataBungee;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
